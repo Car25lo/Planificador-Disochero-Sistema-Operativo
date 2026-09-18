@@ -506,7 +506,7 @@ int main( int argc, char *argv[])
             read(fhijo, buffer, tam_mens);
 
             string act_id= par.second;
-            pid_t pidH=Act[act_id].pid; //aquidahdshkad
+            pid_t pidH=Act[act_id].pid; 
 
             int sta;
             waitpid(pidH, &sta, 0);
