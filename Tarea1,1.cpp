@@ -17,7 +17,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
-#include <signal.h>
+#include <csignal>
 #include <sys/resource.h>
 #include <sys/select.h>
 #include <sys/types.h>
@@ -342,10 +342,21 @@ int main( int argc, char *argv[])
         cout << "error K debe ser positivo"<<endl;
         return 1;
     }
+
+    if (K>= FD_SETSIZE){
+
+        cout << "error K es muy grande para el select" <<endl;
+        return 1;
+    } // se agrego esta condicion para que K no sea mayor a FD_SETSIZE, ya que eso generaba un error en el select
     
     if (argc >= 4) {
         prob_fallo = stof(argv[3]);
-    }
+
+        if (prob_fallo < 0 || prob_fallo > 1) {
+            cout << "prob_fallo fue invalido" << endl;
+            return 1;
+        }
+    } // se modifico la condicion de la probabilidad de fallo para arrelar el stof que se encontraba roto o incompleto
     
     instalar();
     random_device rd;
@@ -558,6 +569,12 @@ int main( int argc, char *argv[])
 
         cout<<" se completo la fonda"<<endl;
     }
+
+
+
+  return 0;
+}
+
 
 
 
