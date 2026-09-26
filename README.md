@@ -21,6 +21,8 @@ Por otro lado el uso de hilos/hebras se encuentra prohibido para esta Tarea, por
 g++ -Wall -Wextra -std=c++17 -lpthread -o planificador "Tarea1,1.cpp"
 ```
 La flag *-lpthread* va solamente por la exigencia de la tarea que pide el comando exacto para realizar la compilación, ya que se prohíbe cualquier uso de hilo en ningún lado, toda la concurrencia es con procesos.
+
+/*agregar explicacion de compilacion*/
 * Como ejecutarlo::
 
 ```bash
@@ -30,25 +32,57 @@ La flag *-lpthread* va solamente por la exigencia de la tarea que pide el comand
 * K --> Indica el numero máximo de actividades que se ejecuta en paralelo
 * prob_fallo --> Es la probabilidad (entre 0 - 1) de que cada actividad falle, de lo contrario es 0
 
+/*agregar explicacion de ejecucion*/
+
 ### Funciones Implementadas:
 
-- Parseo archivo plan.txt
+- *Parseo archivo plan.txt (fila entre 134 - 147)*
 
- La funcion *plan()* procede a leer el archivo linea por linea, ademas que separa cada linea con un ":" mediante la funcion auxiliar *split()* , que tiene el objetivo de validar el formato del archivo antes de armar cada actividad correspondiente: 
+ La función *plan()* procede a leer el archivo linea por linea, además que separa cada linea con un ":" mediante la funcion auxiliar *split()* , que tiene el objetivo de validar el formato del archivo antes de armar cada actividad correspondiente, de lo contrario se retorna un false y no permitira su ejecucion: 
  ```cpp
 while(getline(archivo,lin)){
+
     string l= trim(lin);
+
     if(l.empty()) continue;
  
     vector<string>sep=split(l, ':');
+
     if(sep.size()<3) {
+
         cout<<"formato incorrecto en la linea: "<<cont<<endl;
+
         return false;
     }
     ...
 }
 ```
+El código funciona de tal manera que resuelve primero revisando el archivo si se encuentra vacío, en caso de ser así se genera un intervalo de tiempo de forma aleatoria entre 100 a 5000 ms usando una distribución de manera uniforme. En otro caso de que contenga un valor, ese valor se convierte de texto a numero enteros de forma directa mediante la función *stoi*. Luego de resolver el tiempo, se revisa si existe algún campo con las dependencias. Se separa por comas y cada ID que resulta se almacena en un vector *dep* de esa actividad, Por último, luego de que se leyó todas las actividades del archivo, se valida de que cada actividad no cuente con las mismas ID (para evitar inconsistencia) y que cada dependencia sea correspondiente a una actividad que sea parte del plan existente. En caso de que alguna de estas condiciones falle, el programa corta la ejecución retornando un mensaje de error.   
 
+- *Modelado del DAG (fila entre 67 - 82)*
+  
+Para cada actividad es una estructura (struct) denominado *act*, con una lista de dependencia (*dep*) y, al revés, quien depende de ella es (*dep2*):
+```cpp
+    struct act{
+        string id;
+        string nom;
+        int tiem=0;
+        
+        vector<string>dep;
+        vector<string>dep2;
+        int des_res=0;
+        
+        Est est=Est::pendiente;
+        
+        pid_t pid=-1;
+        vector<int> ent;
+        vector<int> sal;
+
+ };
+```
+En el vector *dep2* que se arma al final de la función *plan()*, que recorre las dependencia que fueron declaradas y que son guardadas en el enlace inverso de la actividad de la que se depende, de tal manera que cuando una actividad finaliza, pueda encontrar a quien pueda avisarle sin la necesidad de recorrer todo el grafo nuevamente. 
+
+Para corroborar que el plan no tenga ciclos, mediante la función *val()* realiza un método de ordenamiento topológico tipo Kahn, que consiste en encolar las actividades sin dependencias pendientes, la va sacando de la cola y el contador de sus dependiente van disminuyendo, y al final se compara cuanta actividades se visitó con el total. En caso de que no calcen, hay un ciclo y el programa se detiene y retorna con un mensaje de error. 
 
 
 
