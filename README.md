@@ -4,4 +4,8 @@ Integrantes: Jasson Valverde - Carlos Araya
 
 Seccion: 2
 
+
+<p>
+  Explicacion del Codigo:
+</p>
 /*agregar explicacion*/
