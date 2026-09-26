@@ -159,8 +159,8 @@ En el vector *dep2* que se arma al final de la función *plan()*, que recorre la
 
 Para corroborar que el plan no tenga ciclos, mediante la función *val()* realiza un método de ordenamiento topológico tipo Kahn, que consiste en encolar las actividades sin dependencias pendientes, la va sacando de la cola y el contador de sus dependiente van disminuyendo, y al final se compara cuanta actividades se visitó con el total. En caso de que no calcen, hay un ciclo y el programa se detiene y retorna con un mensaje de error. 
 
-- *Creacion de Procesos (fila entre 419 - 484)*
-
+- *Creación de Procesos (fila entre 419 - 484)*
+  
 Por cada actividad lista y que no se llegue al límite K, se crean un pipe y se hace un *fork()*:
 
 ``` cpp
@@ -265,9 +265,25 @@ En lugar de andar preguntando en un loop si algún nodo hijo terminó, se arma u
 ```
 Con esto el proceso principal evita consumir recursos de la CPU cuando no hay novedades (sin busy-waiting). Además que no hay condiciones de carrera porque no hay memoria compartida entre los proceso ya que cada nodo hijo tiene su “copia” de todo (especialmente lo que hereda del *fork()* ), y la única comunicación es mediante pipes, ya que el kernel se sincroniza solo. El nodo padre es el único que modifica el estado (*Act*,*cor*,*ok*), siempre de forma secuencial dentro de su propio loop.
 
-- *pasos mensajes pipes (pendiente)*
+- *Pasos de mensajes (pipes) (fila entre 516 - 526) *
 
-- *Aislamiento de errores (257 - 285)*
+Para cada actividad está compuesto por un pipe, que fue creado justo antes del *fork()*. El nodo hijo escribe el mensaje corto (*”fin<id>”* o *”fallo <id>”*) antes de morir. El nodo padre, cuando la función *select()* le avisa que ese fd tiene datos, procede a leer el mensaje y utiliza un *waitpid()* para obtener el código de la salida real del proceso:
+
+```cpp
+            char buffer[tam_mens]= {0};
+            read(fhijo, buffer, tam_mens);
+
+            string act_id= par.second;
+            pid_t pidH=Act[act_id].pid; 
+
+            int sta;
+            waitpid(pidH, &sta, 0);
+
+            if(WIFEXITED(sta) && WEXITSTATUS(sta)==0){
+```
+El código de salida (*WEXITSTATUS(sta))*, no el texto del mensaje leído del pipe, es lo que realmente decide si la actividad se marca como *Est: : finalizado* o *Est : : abortado*. 
+
+- *Aislamiento de errores (fila entre 257 - 285)*
   
 En caso de que una actividad falle, retorna un mensaje (*”Est : : abortado”*) y llama a la función *chao_mundo()*, que tiene el objetivo de recorrer con BFS (Breadth-First Search) en todas las actividades que dependen de ella ya sea de forma directa o indirecta y las marca abortadas también:
 ```cpp
@@ -306,6 +322,11 @@ Por ende el resto de la ejecución sigue avanzando, el programa nunca se cierra 
 - *Carga de estres* (pendiente)
 
 ## Justificación decisiones tomadas:
+- Implementar *select()* en lugar de hilos o *poll()*: El uso de hilos no está permitido por el enunciado, en cambio al implementar la función *select()* permite esperar a varios pipes a la vez sin sondeo activo. Además que se optó por validar *K* con respecto a *fd_setsize* en lugar de migrar a *poll()* ´porque para la tarea *K* siempre estará muy por debajo de 1024.
+- Un pipe por cada actividad : Es mejor un pipe por cada actividad ya que queda directo al momento de asociar cada descriptor de lectura con sus respectivos ID de la actividad (el mapa *map_fds* hace justo eso), sin la necesidad de armar un protocolo de mensajes con encabezados para poder diferenciar de quien viene cada aviso del pipes.
+- Mensaje de texto simples por cada pipes: Ya que el resultado real (éxito / fallo) ya se obtiene del código de salida mediante *waitpid()*, que es confiable. En cambio el mensaje por el pipe solamente es para avisar “ya termine”, y no se considera una fuente de verdad del resultado.
+- Aborto en cascada con BFS: Al usar la lista inversa *dep2* que ya está montada para parsear, la función *chao_mundo()* solo visita a las actividades que realmente están afectadas por el fallo, sin la necesidad de recorrer las ramas que no tiene nada de relevancia
+- Pipes extra para SIGINT (*g_sigpipe*): Dentro de un manejador de señales no es seguro llamar a funciones complejas, así que el manejador solo prende una bandera (flag) y escribe un byte en un pipe adicional. Ese pipe utiliza el mismo *fd_set* de las actividades, así que la función *select()* reacciona ante un Ctrl + C sin la necesidad de explorar adicionalmente. En caso de que se detecte la bandera (flag), se envía a *SIGTERM* a todos los procesos vivos y, después de un periodo corto, el *SIGKILL* a los procesos que siguen sin responder , ya que esto evita dejar algún nodo hijo huérfano. 
 
 
 
