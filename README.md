@@ -17,11 +17,61 @@ Para la implementación del código, se nos exige usar el lenguaje de programaci
 Por otro lado el uso de hilos/hebras se encuentra prohibido para esta Tarea, por lo que toda la concurrencia del programa se resuelve exclusivamente con procesos, señales y tuberías.
 
 * Compilacion:
-   /agregar comando de compilacion/
-
-* Modo de Uso:
+```bash
+g++ -Wall -Wextra -std=c++17 -lpthread -o planificador "Tarea1,1.cpp"
+```
+La flag *-lpthread* va solamente por la exigencia de la tarea que pide el comando exacto para realizar la compilación, ya que se prohíbe cualquier uso de hilo en ningún lado, toda la concurrencia es con procesos.
+* Como ejecutarlo::
 
 ```bash
 ./ planificador plan.txt K [prob_fallo]
 ```
+* plan.txt --> Es un archivo con las actividades
+* K --> Indica el numero máximo de actividades que se ejecuta en paralelo
+* prob_fallo --> Es la probabilidad (entre 0 - 1) de que cada actividad falle, de lo contrario es 0
+
+### Funciones Implementadas:
+
+- Parseo archivo plan.txt
+
+ La funcion *plan()* procede a leer el archivo linea por linea, ademas que separa cada linea con un ":" mediante la funcion auxiliar *split()* , que tiene el objetivo de validar el formato del archivo antes de armar cada actividad correspondiente: 
+ ```cpp
+while(getline(archivo,lin)){
+    string l= trim(lin);
+    if(l.empty()) continue;
+ 
+    vector<string>sep=split(l, ':');
+    if(sep.size()<3) {
+        cout<<"formato incorrecto en la linea: "<<cont<<endl;
+        return false;
+    }
+    ...
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
