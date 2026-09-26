@@ -13,26 +13,25 @@ El señor Loyola quiere celebrar las Fiestas Patrias durante toda la semana, tra
 
 
 ## Explicacion del codigo:
-Para la implementación del código, se nos exige usar el lenguaje de programación C / C++ , para esta tarea decidimos usar C++ por la facilidad de implementación, ademas que recalco que cada actividades se simula como un proceso de manera independiente (creado con *fork()*), que se comunica con el proceso principal mediante *pipes* con el propósito de avisar cuándo termina y si tuvo éxito o no.
-Por otro lado el uso de hilos/hebras se encuentra prohibido para esta Tarea, por lo que toda la concurrencia del programa se resuelve exclusivamente con procesos, señales y tuberías.
+Para la implementación del programa se decidió utilizar C++ debido a la facilidad de manejo de procesos, señales y comunicación entre los procesos. Además, el enunciado prohíbe el uso de hilos, por lo que toda la concurrencia se resuelve mediante procesos hijos, señales y tuberías.
 
 * Compilacion:
+  
+Para poder compilar la tarea hay que tener en cuenta la carpeta donde esté el archivo fuente e implementar el siguiente comando, que usa *g++* con los flags requeridos:
 ```bash
 g++ -Wall -Wextra -std=c++17 -lpthread -o planificador "Tarea1,1.cpp"
 ```
 La flag *-lpthread* va solamente por la exigencia de la tarea que pide el comando exacto para realizar la compilación, ya que se prohíbe cualquier uso de hilo en ningún lado, toda la concurrencia es con procesos.
 
-/*agregar explicacion de compilacion*/
 * Como ejecutarlo::
 
+Una vez que hayas compilado, el programa se ejecuta el programa se ejecuta pasándole el archivo del plan y el límite de concurrencia como argumentos por línea de comandos: 
 ```bash
 ./ planificador plan.txt K [prob_fallo]
 ```
 * plan.txt --> Es un archivo con las actividades
 * K --> Indica el numero máximo de actividades que se ejecuta en paralelo
 * prob_fallo --> Es la probabilidad (entre 0 - 1) de que cada actividad falle, de lo contrario es 0
-
-/*agregar explicacion de ejecucion*/
 
 ### Funciones Implementadas:
 
@@ -265,7 +264,7 @@ En lugar de andar preguntando en un loop si algún nodo hijo terminó, se arma u
 ```
 Con esto el proceso principal evita consumir recursos de la CPU cuando no hay novedades (sin busy-waiting). Además que no hay condiciones de carrera porque no hay memoria compartida entre los proceso ya que cada nodo hijo tiene su “copia” de todo (especialmente lo que hereda del *fork()* ), y la única comunicación es mediante pipes, ya que el kernel se sincroniza solo. El nodo padre es el único que modifica el estado (*Act*,*cor*,*ok*), siempre de forma secuencial dentro de su propio loop.
 
-- *Pasos de mensajes (pipes) (fila entre 516 - 526) *
+- Pasos de mensajes (pipes) (fila entre 516 - 526)
 
 Para cada actividad está compuesto por un pipe, que fue creado justo antes del *fork()*. El nodo hijo escribe el mensaje corto (*”fin<id>”* o *”fallo <id>”*) antes de morir. El nodo padre, cuando la función *select()* le avisa que ese fd tiene datos, procede a leer el mensaje y utiliza un *waitpid()* para obtener el código de la salida real del proceso:
 
@@ -317,9 +316,19 @@ void chao_mundo(string id_raiz){
 
 }
 ```
-Por ende el resto de la ejecución sigue avanzando, el programa nunca se cierra por un fallo de una sola actividad, solo se corta la rama afectada para abortar la ejecución. 
+Por ende el resto de la ejecución sigue avanzando, el programa nunca se cierra por un fallo de una sola actividad, solo se corta la rama afectada para abortar la ejecución. // explicar mas
 
-- *Carga de estres* (pendiente)
+- Carga de estres (fila entre 346 - 350)
+
+```cpp
+    if (K>= FD_SETSIZE){
+
+        cout << "error K es muy grande para el select" <<endl;
+        return 1;
+    } 
+
+```
+Sin esta condición, correr el programa con un *K* demasiado alto no retornaría simplemente un error, sino que el comportamiento queda indefinidamente dentro de la función *select()*. Además que durante la prueba de la carga de 10000 actividades que se probó generando un plan.txt en las capas de dependencias (cada actividad depende de una de las capas anteriores) y ejecutando el programa con un *K* bajo de los 1024, de tal manera que completa la ejecución sin caída ni cuelgues de los procesos. 
 
 ## Justificación decisiones tomadas:
 - Implementar *select()* en lugar de hilos o *poll()*: El uso de hilos no está permitido por el enunciado, en cambio al implementar la función *select()* permite esperar a varios pipes a la vez sin sondeo activo. Además que se optó por validar *K* con respecto a *fd_setsize* en lugar de migrar a *poll()* ´porque para la tarea *K* siempre estará muy por debajo de 1024.
