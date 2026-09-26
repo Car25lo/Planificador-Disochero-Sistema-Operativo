@@ -1,11 +1,5 @@
-#### Explicacion Codigo - Planificacion Dieciochera - Sistema Operativo
-
-Integrantes: Jasson Valverde - Carlos Araya
-
-Seccion: 2
+# Explicacion Codigo - Planificacion Dieciochera - Sistema Operativo
+## Integrantes: Jasson Valverde - Carlos Araya
+## Seccion: 2
 
 
-<p>
-  Explicacion del Codigo:
-</p>
-/*agregar explicacion*/
