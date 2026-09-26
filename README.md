@@ -1,4 +1,4 @@
-# Tarea 1 - Planificacion Dieciochera - Sistema Operativo
+# Tarea 1 - Planificación Dieciochera - Sistema Operativo
 Integrantes: Jasson Valverde - Carlos Araya
  
  Sección: 2
@@ -15,7 +15,7 @@ El señor Loyola quiere celebrar las Fiestas Patrias durante toda la semana, tra
 ## Explicacion del codigo:
 Para la implementación del programa se decidió utilizar C++ debido a la facilidad de manejo de procesos, señales y comunicación entre los procesos. Además, el enunciado prohíbe el uso de hilos, por lo que toda la concurrencia se resuelve mediante procesos hijos, señales y tuberías.
 
-* Compilacion:
+* Compilación:
   
 Para poder compilar la tarea hay que tener en cuenta la carpeta donde esté el archivo fuente e implementar el siguiente comando, que usa *g++* con los flags requeridos:
 ```bash
