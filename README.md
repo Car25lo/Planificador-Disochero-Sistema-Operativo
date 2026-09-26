@@ -265,11 +265,47 @@ En lugar de andar preguntando en un loop si algún nodo hijo terminó, se arma u
 ```
 Con esto el proceso principal evita consumir recursos de la CPU cuando no hay novedades (sin busy-waiting). Además que no hay condiciones de carrera porque no hay memoria compartida entre los proceso ya que cada nodo hijo tiene su “copia” de todo (especialmente lo que hereda del *fork()* ), y la única comunicación es mediante pipes, ya que el kernel se sincroniza solo. El nodo padre es el único que modifica el estado (*Act*,*cor*,*ok*), siempre de forma secuencial dentro de su propio loop.
 
+- *pasos mensajes pipes (pendiente)*
 
+- *Aislamiento de errores (257 - 285)*
+  
+En caso de que una actividad falle, retorna un mensaje (*”Est : : abortado”*) y llama a la función *chao_mundo()*, que tiene el objetivo de recorrer con BFS (Breadth-First Search) en todas las actividades que dependen de ella ya sea de forma directa o indirecta y las marca abortadas también:
+```cpp
+void chao_mundo(string id_raiz){
 
+    queue<string> n;
 
+    for(const string &hijo: Act[id_raiz].dep2){
 
+        n.push(hijo);
 
+    } 
+
+    while(!n.empty()){
+
+      string id=n.front();
+      n.pop();
+
+      if(Act[id].est != Est::abortado){
+      
+      Act[id].est= Est::abortado;
+      cout<<" aborto en cascada por falta de cosas: "<<Act[id].nom<<endl;
+    
+      for( const string &dep: Act[id].dep2){
+
+        n.push(dep);
+
+      }
+    }
+      }
+
+}
+```
+Por ende el resto de la ejecución sigue avanzando, el programa nunca se cierra por un fallo de una sola actividad, solo se corta la rama afectada para abortar la ejecución. 
+
+- *Carga de estres* (pendiente)
+
+## Justificación decisiones tomadas:
 
 
 
