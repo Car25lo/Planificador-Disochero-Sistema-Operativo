@@ -231,11 +231,39 @@ while(!ok.empty() && cor<K){
 El código procede a sacar el primer ID de la cola y se crea un pipe con *pipe (p_cm)* con el propósito de que puedan comunicarse con el hijo que viene. la función *fork()*  duplica el proceso actual de la memoria con sus descriptores abiertos que están incluidos en ello y retorna 2 veces, el PID del hijo en el padre , 0 en el hijo, lo que permite poder distinguir en qué rama está cada uno.
 
 * Nodo Hijo: Cierra el extremo del pipe que no usa (*p_cm[0]*), luego simula el trabajo con un *usleep()*, y se decide con una probabilidad en caso de que si falla o no. Con esa probabilidad se calcula con un generador propio con *getpid()* , de ser necesario porque el nodo hijo hereda el estado del generador del nodo padre al realizar un *fork()* y sin propagar todos los nodos hijos que generan la misma secuencia de forma aleatoria. Una vez que termina, el pipe escribe un pequeño mensaje y saliendo con (exit(0) o exit(1)), el código que el nodo padre usara después mediante *waitpid()* para poder saber el resultado real.
-* Nodo Padre: 
+* Nodo Padre: También cierra su extremo que no usa (*p_cm[1]*), guarda el PID y el FD de lectura (usando *ids* y *map_fds* de forma respectiva, para usarlo más adelante en la función *select()* y con el manejo de Ctrl + C), además que durante la ejecución, retorna un mensaje como “*Est : :ejecutando*”, y suma uno a *cor*. Por ende no se bloquea esperando a este nodo hijo, continúa de forma inmediata con la siguiente actividad lista mientras sigan dentro de los límites de K actividades, luego recién se entera de que finalizó cuando la función *select()* avisa.  
 
+- *Concurrencia sin busy-waiting ni condiciones de carrera (fila entre 486-506)*
 
+Como habíamos dicho que K es el número máximo de actividades , por ende se debe cumplir con la condición de *cor*<K dentro del ciclo *while*, evitando que se quede mas de K procesos vivos al mismo tiempo, el resto debe esperar en la cola *ok*. 
 
+En lugar de andar preguntando en un loop si algún nodo hijo terminó, se arma un *fd_set* con todos los pipes que se encuentren activos y se bloquean la función *select()* hasta que llegue algo:
+  
 
+``` cpp
+    FD_ZERO(&read_fds);
+    FD_SET(g_sigpipe[0], &read_fds);
+    int max_fd= g_sigpipe[0];
+    
+    for(const auto &par: map_fds){
+
+        FD_SET(par.first, &read_fds);
+        
+        if(par.first>max_fd){
+
+            max_fd= par.first;
+
+        }
+
+    }
+
+    if(select(max_fd+1, &read_fds, NULL, NULL, NULL)== -1){
+
+        if(errno==EINTR) continue;
+    
+    }
+```
+Con esto el proceso principal evita consumir recursos de la CPU cuando no hay novedades (sin busy-waiting). Además que no hay condiciones de carrera porque no hay memoria compartida entre los proceso ya que cada nodo hijo tiene su “copia” de todo (especialmente lo que hereda del *fork()* ), y la única comunicación es mediante pipes, ya que el kernel se sincroniza solo. El nodo padre es el único que modifica el estado (*Act*,*cor*,*ok*), siempre de forma secuencial dentro de su propio loop.
 
 
 
