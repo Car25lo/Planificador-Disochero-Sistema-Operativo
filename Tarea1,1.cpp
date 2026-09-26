@@ -347,7 +347,7 @@ int main( int argc, char *argv[])
 
         cout << "error K es muy grande para el select" <<endl;
         return 1;
-    } // se agrego esta condicion para que K no sea mayor a FD_SETSIZE, ya que eso generaba un error en el select
+    } 
     
     if (argc >= 4) {
         prob_fallo = stof(argv[3]);
@@ -356,7 +356,7 @@ int main( int argc, char *argv[])
             cout << "prob_fallo fue invalido" << endl;
             return 1;
         }
-    } // se modifico la condicion de la probabilidad de fallo para arrelar el stof que se encontraba roto o incompleto
+    } 
     
     instalar();
     random_device rd;
@@ -569,12 +569,6 @@ int main( int argc, char *argv[])
 
         cout<<" se completo la fonda"<<endl;
     }
-
-
-
-  return 0;
-}
-
 
 
 
