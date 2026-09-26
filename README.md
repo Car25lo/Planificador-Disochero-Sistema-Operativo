@@ -18,3 +18,10 @@ Por otro lado el uso de hilos/hebras se encuentra prohibido para esta Tarea, por
 
 * Compilacion:
    /agregar comando de compilacion/
+
+* Modo de Uso:
+
+```bash
+./ planificador plan.txt K [prob_fallo]
+```
+
