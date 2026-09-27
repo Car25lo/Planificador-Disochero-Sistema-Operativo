@@ -13,7 +13,7 @@ El señor Loyola quiere celebrar las Fiestas Patrias durante toda la semana, tra
 
 
 ## Explicacion del codigo:
-Para la implementación del programa se decidió utilizar C++ debido a la facilidad de manejo de procesos, señales y comunicación entre los procesos. Además, el enunciado prohíbe el uso de hilos, por lo que toda la concurrencia se resuelve mediante procesos hijos, señales y tuberías.
+Para la implementación del programa se decidió utilizar C++ debido a la facilidad de manejo de procesos, señales y comunicación entre los procesos. Además que el enunciado prohíbe el uso de hilos, por lo que toda la concurrencia se resuelve mediante procesos padres, hijos, señales y tuberías.
 
 * Compilación:
   
